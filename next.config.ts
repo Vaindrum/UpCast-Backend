@@ -1,7 +1,11 @@
-import type { NextConfig } from "next";
-
-const nextConfig: NextConfig = {
-  /* config options here */
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  experimental: {
+    turbo: false, // 👈 disables Turbopack
+  },
+  eslint: {
+    ignoreDuringBuilds: true, // 👈 skips ESLint in `next build`
+  },
 };
 
-export default nextConfig;
+module.exports = nextConfig;

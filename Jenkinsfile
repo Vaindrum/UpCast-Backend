@@ -1,0 +1,31 @@
+pipeline {
+    agent any
+
+    environment {
+        REGISTRY = "docker.io"
+        DOCKERHUB_CREDENTIALS = credentials('dockerhub')
+        FRONTEND_IMAGE = "vaindrum/upcast-frontend"
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'main',
+                    url: 'https://github.com/your-username/upcast-frontend.git'
+            }
+        }
+
+        stage('Build Frontend Image') {
+            steps {
+                sh "docker build -t $FRONTEND_IMAGE:latest ."
+            }
+        }
+
+        stage('Login & Push') {
+            steps {
+                sh "echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin"
+                sh "docker push $FRONTEND_IMAGE:latest"
+            }
+        }
+    }
+}

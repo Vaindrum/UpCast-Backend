@@ -9,6 +9,41 @@ type Weather = {
   time: string;
 };
 
+function getWeatherDescription(code: number): string {
+  const map: Record<number, string> = {
+    0: "Clear sky",
+    1: "Mainly clear",
+    2: "Partly cloudy",
+    3: "Overcast",
+    45: "Fog",
+    48: "Depositing rime fog",
+    51: "Light drizzle",
+    53: "Moderate drizzle",
+    55: "Dense drizzle",
+    56: "Light freezing drizzle",
+    57: "Dense freezing drizzle",
+    61: "Slight rain",
+    63: "Moderate rain",
+    65: "Heavy rain",
+    66: "Light freezing rain",
+    67: "Heavy freezing rain",
+    71: "Slight snow fall",
+    73: "Moderate snow fall",
+    75: "Heavy snow fall",
+    77: "Snow grains",
+    80: "Slight rain showers",
+    81: "Moderate rain showers",
+    82: "Violent rain showers",
+    85: "Slight snow showers",
+    86: "Heavy snow showers",
+    95: "Thunderstorm",
+    96: "Thunderstorm with slight hail",
+    99: "Thunderstorm with heavy hail",
+  };
+
+  return map[code] || "Unknown weather";
+}
+
 export default function Home() {
   const [city, setCity] = useState("");
   const [weather, setWeather] = useState<Weather | null>(null);
@@ -16,28 +51,33 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
 
   const fetchWeather = async () => {
-    if (!city) {
-      setError("Enter a city name");
-      return;
-    }
-    setError("");
-    setLoading(true);
-    setWeather(null);
+  if (!city) {
+    setError("Enter a city name");
+    return;
+  }
+  setError("");
+  setLoading(true);
+  setWeather(null);
 
-    try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/weather?city=${encodeURIComponent(
-          city
-        )}`
-      );
-      const data: Weather = await res.json();
-      setWeather(data);
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
+  try {
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/weather?city=${encodeURIComponent(city)}`
+    );
+    const data = await res.json();
+
+    if (!res.ok) {
+      // backend returned an error
+      throw new Error(data.error || "Failed to fetch weather");
     }
-  };
+
+    setWeather(data);
+  } catch (err: any) {
+    setError(err.message);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-500 to-indigo-600">
@@ -79,8 +119,9 @@ export default function Home() {
               💨 Wind Speed: {weather.windspeed} km/h
             </p>
             <p className="text-gray-700">
-              ☁️ Weather Code: {weather.weathercode}
-            </p>
+  ☁️ Condition: {getWeatherDescription(weather.weathercode)}
+</p>
+
             <p className="text-gray-500 text-sm mt-2">
               ⏰ {new Date(weather.time).toLocaleString()}
             </p>
