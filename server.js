@@ -6,28 +6,29 @@ const app = express();
 app.use(cors());
 const PORT = process.env.PORT || 5000;
 
-// GET /api/weather?city=Delhi
 app.get("/api/weather", async (req, res) => {
-  const city = req.query.city || "Delhi";
+  const city = req.query.city;
+  if (!city) {
+    return res.status(400).json({ error: "City is required" });
+  }
 
   try {
-    // 1. Get lat/lon from geocoding API
-    const geoResp = await fetch(
-      `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(
-        city
-      )}&count=1`
+    // Geocoding lookup
+    const geoRes = await fetch(
+      `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}`
     );
-    const geoData = await geoResp.json();
+    const geoData = await geoRes.json();
+
     if (!geoData.results || geoData.results.length === 0) {
       return res.status(404).json({ error: "City not found" });
     }
+
     const { latitude, longitude, name, country } = geoData.results[0];
 
-    // 2. Get weather data from forecast API
-    const weatherResp = await fetch(
+    const weatherRes = await fetch(
       `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true`
     );
-    const weatherData = await weatherResp.json();
+    const weatherData = await weatherRes.json();
 
     res.json({
       city: `${name}, ${country}`,
@@ -37,9 +38,11 @@ app.get("/api/weather", async (req, res) => {
       time: weatherData.current_weather.time,
     });
   } catch (err) {
-    res.status(500).json({ error: "Failed to fetch weather", details: err.message });
+    console.error(err);
+    res.status(500).json({ error: "Something went wrong" });
   }
 });
+
 
 app.get("/", (req, res) => {
   res.send("🌤️ UpCast Backend is running. Use /api/weather?city=Delhi");
