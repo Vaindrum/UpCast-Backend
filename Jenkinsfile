@@ -8,12 +8,12 @@ pipeline {
     }
 
     stages {
-        // stage('Checkout') {
-        //     steps {
-        //         git branch: 'main',
-        //             url: 'https://github.com/Vaindrum/UpCast-Backend'
-        //     }
-        // }
+        stage('Checkout') {
+            steps {
+                git branch: 'main',
+                    url: 'https://github.com/Vaindrum/UpCast-Backend'
+            }
+        }
 
         stage('Build Backend Image') {
             steps {
